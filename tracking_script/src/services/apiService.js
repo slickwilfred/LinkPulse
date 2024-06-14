@@ -4,7 +4,8 @@ dotenv.config()
  * 
  */
 function sendData(data, path) {
-    fetch(process.env.API_URL/path, {
+    const API_URL = process.env.API_URL;
+    fetch(`${API_URL}/${path}`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data),
