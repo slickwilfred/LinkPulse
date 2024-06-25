@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
-	"tracking_backend/src/api/controllers/authentication"
 	"tracking_backend/src/app"
+	"tracking_backend/src/controllers/authentication"
 	"tracking_backend/src/database"
 	"tracking_backend/src/interfaces"
+	"tracking_backend/src/models"
 )
 
 func main() {
@@ -29,9 +29,11 @@ func main() {
 	// Init app (router/db - see struct)
 	app := app.NewApp(db)
 
+	// Init models
+
 	// Add list of controllers
 	controllers := []interfaces.Controller{
-		authentication.NewAuthenticationController(db),
+		authentication.NewAuthenticationController(&models.User_Model{}),
 	}
 
 	// Register controllers
@@ -41,5 +43,5 @@ func main() {
 	port := ":8888"
 	listen := fmt.Sprintf("\nServer listening on port %s...", port)
 	log.Println(listen)
-	log.Fatal(http.ListenAndServe(port, app.GetRouter()))
+	log.Fatal(app.GetRouter().Run(port))
 }
