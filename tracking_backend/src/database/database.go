@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DB struct {
@@ -26,7 +26,7 @@ func Initialize(conf *DatabaseConfig) (*pgxpool.Pool, error) {
 
 	poolConfig.MaxConns = int32(conf.PoolMaxConns)
 
-	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("error establishing connection to the database: %w", err)
