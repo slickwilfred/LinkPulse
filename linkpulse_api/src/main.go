@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"linkpulse_api/src/api/controllers/authentication"
 	"linkpulse_api/src/app"
+	"linkpulse_api/src/controllers/authentication"
 	"linkpulse_api/src/database"
 	"linkpulse_api/src/interfaces"
+	"linkpulse_api/src/models"
 	"log"
 	"net/http"
 )
@@ -29,9 +30,11 @@ func main() {
 	// Init app (router/db - see struct)
 	app := app.NewApp(db)
 
+	// Init models
+
 	// Add list of controllers
 	controllers := []interfaces.Controller{
-		authentication.NewAuthenticationController(db),
+		authentication.NewAuthenticationController(&models.User_Model{}),
 	}
 
 	// Register controllers

@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v4/pgxpool"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DB struct {
@@ -27,7 +26,7 @@ func Initialize(conf *DatabaseConfig) (*pgxpool.Pool, error) {
 
 	poolConfig.MaxConns = int32(conf.PoolMaxConns)
 
-	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("error establishing connection to the database: %w", err)
@@ -36,22 +35,4 @@ func Initialize(conf *DatabaseConfig) (*pgxpool.Pool, error) {
 	fmt.Println("Database connection established!")
 
 	return pool, nil
-}
-
-// Checks to see if a user exists
-func (db *DB) CheckUserExists(email string) (bool, error) {
-	var exists bool
-	err := db.Pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", email).Scan(&exists)
-	return exists, err
-}
-
-// Creates a new user
-func (db *DB) CreateUser(name, email, password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Pool.Exec(context.Background(), `INSERT INTO "users" (name, email, password) VALUES ($1, $2, $3)`, name, email, string(hashedPassword))
-	return err
 }

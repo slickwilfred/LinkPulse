@@ -3,20 +3,22 @@ package authentication
 import (
 	"errors"
 	"fmt"
-	dto "linkpulse_api/src/api/dtos"
-	"linkpulse_api/src/database"
+	"linkpulse_api/src/dtos"
+	dto "linkpulse_api/src/dtos"
+	"linkpulse_api/src/models"
+	validate "linkpulse_api/src/validator"
 	//"AffiliateLinksBackend/models/dto"
 	//"context"
 )
 
 // AuthenticationService handles the logic for user authentication
 type AuthenticationService struct {
-	DB *database.DB
+	UserModel *models.User_Model
 }
 
 // Creates a new instance
-func NewAuthenticationService(db *database.DB) *AuthenticationService {
-	return &AuthenticationService{DB: db}
+func NewAuthenticationService(user_model *models.User_Model) *AuthenticationService {
+	return &AuthenticationService{UserModel: user_model}
 }
 
 // Authenticate
@@ -26,6 +28,20 @@ func NewAuthenticationService(db *database.DB) *AuthenticationService {
 // CreateToken
 
 // Login
+func (service *AuthenticationService) Login(req dto.LoginRequest) (*dtos.User, error) {
+	err := validate.LoginRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := service.UserModel.LoginUser(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+
+}
 
 // Logout
 
@@ -33,7 +49,7 @@ func NewAuthenticationService(db *database.DB) *AuthenticationService {
 func (service *AuthenticationService) Register(req dto.RegistrationRequest) error {
 	fmt.Println("Starting registration function for " + req.Email + "...")
 
-	exists, err := service.DB.CheckUserExists(req.Email)
+	exists, err := service.UserModel.CheckUserExists(req.Email)
 	if err != nil {
 		return err
 	}
@@ -44,7 +60,7 @@ func (service *AuthenticationService) Register(req dto.RegistrationRequest) erro
 	}
 
 	fmt.Println("\tCreating new user...")
-	err = service.DB.CreateUser(req.Name, req.Email, req.Password)
+	err = service.UserModel.CreateUser(req.Name, req.Email, req.Password)
 	if err != nil {
 		return err
 	}

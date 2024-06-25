@@ -3,9 +3,10 @@ package authentication
 import (
 	"encoding/json"
 	"fmt"
-	dto "linkpulse_api/src/api/dtos"
-	"linkpulse_api/src/database"
+	"linkpulse_api/src/dtos"
 	"linkpulse_api/src/interfaces"
+	"linkpulse_api/src/models"
+	validate "linkpulse_api/src/validator"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -17,9 +18,9 @@ type AuthenticationController struct {
 }
 
 // Creates a new instance of AuthenticationController
-func NewAuthenticationController(db *database.DB) interfaces.Controller {
+func NewAuthenticationController(user_model *models.User_Model) interfaces.Controller {
 	return &AuthenticationController{
-		Service:  NewAuthenticationService(db),
+		Service:  NewAuthenticationService(user_model),
 		basePath: "/auth",
 	}
 }
@@ -36,7 +37,7 @@ func (ac *AuthenticationController) InitializeRoutes(router *mux.Router) {
 	subRouter := router.PathPrefix(ac.GetBasePath()).Subrouter()
 
 	subRouter.HandleFunc("/register", ac.registerHandler).Methods("POST")
-
+	subRouter.HandleFunc("/login", ac.loginHandler).Methods("POST")
 	/*
 		// Define routes and their corresponding handler functions
 		subRouter.HandleFunc("/login", ac.Service.Login).Methods("POST")
@@ -48,14 +49,41 @@ func (ac *AuthenticationController) InitializeRoutes(router *mux.Router) {
 	*/
 }
 
+func (ac *AuthenticationController) loginHandler(w http.ResponseWriter, r *http.Request) {
+	var req dtos.LoginRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request."})
+		return
+	}
+
+	user, err := ac.Service.Login(req)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(fmt.Errorf("Login failed: %s", err))
+		json.NewEncoder(w).Encode(map[string]string{"error": fmt.Sprintf("Login failed: %s", err)})
+		return
+	}
+
+	response := dtos.LoginResponse{
+		User:    user,
+		Message: "Login successful",
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(response)
+}
+
+// Registration Handler
 func (ac *AuthenticationController) registerHandler(w http.ResponseWriter, r *http.Request) {
-	var req dto.RegistrationRequest
+	var req dtos.RegistrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := dto.ValidateRegistrationRequest(req); err != nil {
+	if err := validate.RegistrationRequest(req); err != nil {
 		http.Error(w, fmt.Sprintf("Validation failed: %v", err), http.StatusBadRequest)
 		return
 	}
