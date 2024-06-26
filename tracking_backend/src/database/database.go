@@ -32,7 +32,7 @@ func Initialize(conf *DatabaseConfig) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("error establishing connection to the database: %w", err)
 	}
 
-	fmt.Println("Database connection established!")
+	fmt.Println("\tDatabase connection established!")
 
 	return pool, nil
 }

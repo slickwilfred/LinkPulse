@@ -32,7 +32,7 @@ func LoadConfig(configPath string) (*DatabaseConfig, error) {
 		return nil, err
 	}
 
-	fmt.Println("Configuration file loaded successfully!")
+	fmt.Println("\tConfiguration file loaded successfully!")
 
 	return config, nil
 }
