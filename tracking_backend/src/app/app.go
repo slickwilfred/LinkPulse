@@ -3,6 +3,7 @@ package app
 import (
 	"tracking_backend/src/database"
 	"tracking_backend/src/interfaces"
+	middleware "tracking_backend/src/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,4 +32,13 @@ func (a *App) RegisterControllers(controllers []interfaces.Controller) {
 // Returns the App's router
 func (a *App) GetRouter() *gin.Engine {
 	return a.Router
+}
+
+// Initialize Middleware
+func (a *App) RegisterMiddleware(secretKey, allowedOrigin, allowedReferrer string) {
+	tm := middleware.NewMiddleware(secretKey, allowedOrigin, allowedReferrer)
+	r := a.GetRouter()
+
+	r.Use(tm.ValidateOriginAndReferrer())
+	r.Use(tm.VerifyToken())
 }
