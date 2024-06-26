@@ -8,9 +8,18 @@ import (
 	"tracking_backend/src/database"
 	"tracking_backend/src/interfaces"
 	"tracking_backend/src/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	secretKey := "thisneedstobechanged"
+	allowedOrigin := "https://www.linkpulse.ca"
+	allowedReferrer := "https://www.linkpulse.ca"
+
+	// Uncomment to run in production (set it to release mode)
+	gin.SetMode(gin.ReleaseMode)
+
 	// Load the database config file
 	config, err := database.LoadConfig("./database/dbconfig.json")
 	if err != nil {
@@ -30,6 +39,9 @@ func main() {
 	app := app.NewApp(db)
 
 	// Init models
+
+	// Init middleware
+	app.RegisterMiddleware(secretKey, allowedOrigin, allowedReferrer)
 
 	// Add list of controllers
 	controllers := []interfaces.Controller{
